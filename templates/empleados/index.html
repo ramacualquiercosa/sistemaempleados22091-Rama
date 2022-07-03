@@ -1,10 +1,8 @@
 {% include 'header.html' %}
-
- 
-     <table class="table table-light">
+     <table class="table table-light"><!--Creamos una tabla de boostrap para listar el contenido de la base de datos que nos envia el controlador-->
         <thead class="thead-light">
-            <tr>
-                <th>#</th>
+            <tr><!--Creamos los titulos de cada columna, en una fila general-->
+                <th>#</th><!--Cada titulo va a coincidir con el dato que mostremos mas adelante (por ejemplo en esta columna se muestra el id de cada registro, que coincide con la posición 0 de cada tupla)-->
                 <th>Foto</th>
                 <th>Nombre</th>
                 <th>Correo</th>
@@ -12,22 +10,21 @@
             </tr>
         </thead>
         <tbody>
-            {% for empleado in empleados %}
+            {% for empleado in empleados %}<!--Iteramos la tupla "empleados" para listar cada una de las tublas que contiene-->
+            <!--La iteración se hace con Jinja, que es framework de Flasck que opera como  una suerte de Javascript -->
             <tr>
-                <td>{{empleado[0]}}</td>
+                <td>{{empleado[0]}}</td><!--Indicamos la posición del dato que queremos mostras (en este caso, la posición 0 contiene el id)-->
                 <td>{{empleado[3]}}</td>
                 <td>{{empleado[1]}}</td>
                 <td>{{empleado[2]}}</td>
-                <td> <a href="/edit/{{empleado[0]}}">Editar</a>
+                <td> <a href="/edit/{{empleado[0]}}">Editar</a> <!--Link para editar el registro que elijamos (redirecciona al Edit)-->
                      |
-                    <a href="/destroy/{{empleado[0]}}">Eliminar</a>
+                    <a href="/destroy/{{empleado[0]}}">Eliminar</a><!--Link para eliminar el registro que elijamos (redirecciona al destroy en el controlador)-->
+                    <!--la ruta "/destroy/{{empleado[0]}}" hace referencia al id, para que se determine que elemento es el que se va a elimina-->
                 </td>
             </tr>
-            {% endfor %}
+            {% endfor %}<!--Cierra el for-->
         </tbody>
      </table>
-
-
-
 </body>
 </html>
