@@ -100,15 +100,15 @@ def update():#Definimos la función para editar
     datos = (_nombre ,_correo,_id)#Determina que datos se van a insertar en los parametros que dejamos pendiente en el Query usando "%s"
     conn = mysql.connect()#Abre la conección con la base de datos
     cursor=conn.cursor()#Crea un cursor que lleva dentro el Query para ejecutarlo
-
+    #PARA MODIFICAR EL REGISTRO DE LA FOTO, REALIZO HACEMOS LO SIGUIENTE:
     now   =  datetime.now()#Creamos variable donde se guardan todos los datos del tiempo (dias, horas, minutos, etc)
     ahora =  now.strftime("%Y%H%M%S")#Guardamos en una variable "ahora" el tiempo en formato string
     nuevoNombreFoto = ''#Define el nombre de foto como vació por si no se carga foto al momento de crear el registro
-    
+    #GUARDO LA NUEVA FOTO DE LA SIGUIENTE MANERA:
     if _foto.filename != '':#Comprobamos que la foto esté cargada, es decir, preguntamos "Si foto.filename es diferente a vacío"
         nuevoNombreFoto = ahora + _foto.filename#Le cambio el nombre a la foto agregando el año/hora/minutos/segundos en que se carga
         _foto.save('uploads/' + nuevoNombreFoto)#Guardo la foto en la carpeta "Uploads" con el nuevo nombre
-
+        #POR OTRO LADO, BUSCO LA FOTO ANTERIOR Y LA ELIMINO DE LA CARPETA UPLOADS
         cursor.execute("SELECT foto FROM empleados WHERE id =%s",_id)#Ejecuta el Query en el cual se consulta a la base de datos cual es el nombre de la foto que se relaciona con el id del registro a modificar
         fila=cursor.fetchall()#Guardamos el Query que ejecuta el cursor en una variable, utilizando el metodo fetchall para que lo convierta en una tupla dentro de otra 
 
@@ -116,11 +116,11 @@ def update():#Definimos la función para editar
         os.remove(os.path.join(app.config['CARPETA'],fila[0][0] ))#Metodo que permite borrar la foto a la que hace referencia el nombre contenido en "fila"
         cursor.execute("UPDATE empleados SET foto=%s WHERE id=%s ",(nuevoNombreFoto , _id))#Actualizo en la base de datos el nombre de la nueva foto, correspondiente al id proporcionado por la variable "_id"
         conn.commit()#Estabiliza en la base de datos los cambios realizados
-
+    #TERMINO DE CARGAR EL LA BASE DE DATOS LOS DEMAS DATOS (nombre, correo, e id)
     cursor.execute(sql, datos)#Ejecuta el cursor, con el Query que definimos. Asimismo, vincula los datos que dejamos pendientes del Query (%s) con las que se guardaron en la variable "datos"
     conn.commit()#Estabiliza en la base de datos los cambios realizados
     return redirect('/')#Redirige a la pagina principal con las modificaciones realizadas
-
+#---------------------------------------------------------------------------------------------------------------------------
 
 
 if __name__ =='__main__':#Punto de entrada de la app
