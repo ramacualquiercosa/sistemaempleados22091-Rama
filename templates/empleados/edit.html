@@ -1,14 +1,14 @@
-{% include 'header.html' %}
-{% for empleado in empleados %}
-
-<form method="post" action="/update" enctype="multipart/form-data">
+{% include 'header.html' %}<!--Agregamos un header a la página a través de una función de jinja-->
+{% for empleado in empleados %}<!--Iteramos la tupla "empleados" para listar cada una de las tublas que contiene-->
+<!---Se repite la vista de la página create-->
+<form method="post" action="/update" enctype="multipart/form-data"><!--Cambiamos el "action" a "/update", para que cuando se procese el formulario no se guarde un nuevo registro, sino que se modifique uno ya existente-->
 
     Id:
     <input type="text" value="{{empleado[0]}}" name="txtId" id="txtId">
     <br>
    
     Nombre:
-    <input type="text" value="{{empleado[1]}}" name="txtNombre" id="txtNombre">
+    <input type="text" value="{{empleado[1]}}" name="txtNombre" id="txtNombre"><!---Con la etiqueta "Value" mostramos en input el dato que se consultó en la base de datos de la base de datos (En este caso, {{empleado[1]}} representa el nombre de la tupla empleados que guardamos en el controlador)-->
     <br>
 
     Correo:
@@ -25,4 +25,4 @@
 {% endfor %}
 
 
-{% include 'footer.html' %}
+{% include 'footer.html' %}<!--Agregamos un footer a la página a través de una función de jinja-->

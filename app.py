@@ -48,7 +48,7 @@ def storage():#Definimos la función para guardar
     ahora =  now.strftime("%Y%H%M%S")#Guardamos en una variable "ahora" el tiempo en formato string
     nuevoNombreFoto = ''#Define el nombre de foto como vació por si no se carga foto al momento de crear el registro
     
-    if _foto.filename != '':#Comprobamos que la foto esté cargada, es decir, preguntamos "Si foto.file es diferente a vacío"
+    if _foto.filename != '':#Comprobamos que la foto esté cargada, es decir, preguntamos "Si foto.filename es diferente a vacío"
         nuevoNombreFoto = ahora + _foto.filename #Le cambio el nombre a la foto agregando el año/hora/minutos/segundos en que se carga
         _foto.save('uploads/' + nuevoNombreFoto) #Guardo la foto en la carpeta "Uploads" con el nuevo nombre
 
@@ -67,57 +67,59 @@ def storage():#Definimos la función para guardar
 def destroy(id):#Definimos la función//toma el parametro id del enrutamiento previo
     conn = mysql.connect()#Abre la conección con la base de datos
     cursor=conn.cursor()#Crea un cursor que lleva dentro el Query para ejecutarlo
-    cursor.execute("SELECT foto FROM empleados WHERE id =%s",id)
-    fila=cursor.fetchall()
-    print(fila[0][0])
-    os.remove(os.path.join(app.config['CARPETA'],fila[0][0] ))
-    cursor.execute("DELETE FROM empleados WHERE id=%s",(id))#Ejecuta el cursor, con el Query que definimos (en este caso "DELETE FROM empleados WHERE id=%s;". Notese que el parametro de id contiene "%s", quedando pendiente. Esto se resuelve pasandole a continuación el parametro a llenar (en este caso es "(id) a continuación, tomandolo del parametro de la propia función" 
+    cursor.execute("SELECT foto FROM empleados WHERE id =%s",id)#Ejecuta el Query en el cual se consulta a la base de datos cual es el nombre de la foto que se relaciona con el id del registro a eliminar
+    fila=cursor.fetchall()#Guardamos el Query que ejecuta el cursor en una variable, utilizando el metodo fetchall para que lo convierta en una tupla dentro de otra 
+    print(fila[0][0])#Se utiliza de prueba, para ver que nos devuelve "fila" en la terminal. Notese que se hace referencia a la posición 0 de la primera tupla y a la posición 0 de la tupla que la segunda (que se encuentra contenida dentro de la primera)
+    os.remove(os.path.join(app.config['CARPETA'],fila[0][0] ))#Metodo que permite borrar la foto a la que hace referencia el nombre contenido en "fila"
+    cursor.execute("DELETE FROM empleados WHERE id=%s",(id))#Ejecuta el cursor, con el Query que definimos (en este caso "DELETE FROM empleados WHERE id=%s;". Notese que el parametro de id contiene "%s", quedando pendiente. Esto se resuelve pasandole a continuación el parametro a llenar (en este caso es "(id)", antecedido de una coma y tomandolo del parametro de la propia función) 
     conn.commit()#Estabiliza en la base de datos los cambios realizados 
     return redirect('/')#Redirige a la pagina principal con las modificaciones realizadas
     #el metodo redirect recibe del modelo una respuesta (en este caso una la eliminación de un registro) y refresca el contenido de la página principal y nos redirige a la misma, adviritiendo la acción y mostrando solo los registros existentes en la base de datos
 #-------------------------------------------------------------------------------------------------------------------------
 #EDICION DE REGISTROS///Enrutamiento a la página "edit" 
-@app.route("/edit/<int:id>")
-def edit(id):
-    conn = mysql.connect()
-    cursor=conn.cursor()
-    cursor.execute("SELECT * FROM empleados WHERE id =%s", (id))
-    empleados =  cursor.fetchall()
-    print(empleados)
-    conn.commit()  
-    return render_template('empleados/edit.html' , empleados=empleados)
-
-@app.route("/update" , methods=['POST'])
-def update():
-    _nombre = request.form['txtNombre']
-    _correo = request.form['txtCorreo']
-    _foto   = request.files['txtFoto']
-    _id     =   request.form['txtId']
+#Tiene dos pasos: a) Enviar a un formulario en la vistalos datos del registro a modificar en la base de datos; b) procesar el formulario y guardar en la base de datos los cambios.
+#a) CARGA DE FORMULARIO CON DATOS PARA EDITAR
+@app.route("/edit/<int:id>")#devuelve a la vista la pagina de carga de datos para que sean modificados///recibe a traves del parametro "<int:id>" el id del elemento a editar
+def edit(id):#Definimos la función//toma el parametro id del enrutamiento previo
+    conn = mysql.connect()#Abre la conección con la base de datos
+    cursor=conn.cursor()#Crea un cursor que lleva dentro el Query para ejecutarlo
+    cursor.execute("SELECT * FROM empleados WHERE id =%s", (id))#Ejecuta el cursor, con el Query que definimos (en este caso "SELECT * FROM empleados WHERE id =%s". Notese que el parametro de id contiene "%s", quedando pendiente. Esto se resuelve pasandole a continuación el parametro a llenar (en este caso es "(id)", antecedido de una coma y tomandolo del parametro de la propia función) 
+    empleados =  cursor.fetchall()#crea en la variable "empleados" y la llena con una tupla general que contiene tuplas individiales por cada registro
+    print(empleados)#Se hace un print para testear si llega la información solamente
+    conn.commit()#Estabiliza en la base de datos los cambios realizados 
+    return render_template('empleados/edit.html' , empleados=empleados)#Retorna renderización de template de la ruta a donde queremos ir, en este caso el EDIT
+#b) POCESADOR DE FORMULARIO CON MODIFICACIONES
+@app.route("/update" , methods=['POST'])#Procesa el formulario que viene desde la vista para poder EDITAR los registros existentes, por medio del metodo POST
+def update():#Definimos la función para editar
+    _nombre = request.form['txtNombre']#Procesa a través de una peticion el valor "txtNombre" y lo guarda en una variable
+    _correo = request.form['txtCorreo']#Procesa a través de una peticion el valor "txtCorreo" y lo guarda en una variable
+    _foto   = request.files['txtFoto']#Procesa a través de una peticion el valor "txtFoto" y lo guarda en una variable
+    _id     = request.form['txtId']#Procesa a través de una peticion el valor "txtId" y lo guarda en una variable
  
-    sql = "UPDATE empleados SET nombre=%s , correo=%s WHERE id=%s;" 
-    datos = (_nombre ,_correo,_id)
-    conn = mysql.connect()
-    cursor=conn.cursor()
+    sql = "UPDATE empleados SET nombre=%s , correo=%s WHERE id=%s;"#defino el Query para actualizar el registro, donde quedan pendiente a través de "%s" los datos que voy a modificar
+    datos = (_nombre ,_correo,_id)#Determina que datos se van a insertar en los parametros que dejamos pendiente en el Query usando "%s"
+    conn = mysql.connect()#Abre la conección con la base de datos
+    cursor=conn.cursor()#Crea un cursor que lleva dentro el Query para ejecutarlo
 
-    now   =  datetime.now()
-    ahora =  now.strftime("%Y%H%M%S")
-    nuevoNombreFoto = ''
+    now   =  datetime.now()#Creamos variable donde se guardan todos los datos del tiempo (dias, horas, minutos, etc)
+    ahora =  now.strftime("%Y%H%M%S")#Guardamos en una variable "ahora" el tiempo en formato string
+    nuevoNombreFoto = ''#Define el nombre de foto como vació por si no se carga foto al momento de crear el registro
     
-    if _foto.filename != '':
-        nuevoNombreFoto = ahora + _foto.filename
-        _foto.save('uploads/' + nuevoNombreFoto)
+    if _foto.filename != '':#Comprobamos que la foto esté cargada, es decir, preguntamos "Si foto.filename es diferente a vacío"
+        nuevoNombreFoto = ahora + _foto.filename#Le cambio el nombre a la foto agregando el año/hora/minutos/segundos en que se carga
+        _foto.save('uploads/' + nuevoNombreFoto)#Guardo la foto en la carpeta "Uploads" con el nuevo nombre
 
-        cursor.execute("SELECT foto FROM empleados WHERE id =%s",_id)
-        fila=cursor.fetchall()
+        cursor.execute("SELECT foto FROM empleados WHERE id =%s",_id)#Ejecuta el Query en el cual se consulta a la base de datos cual es el nombre de la foto que se relaciona con el id del registro a modificar
+        fila=cursor.fetchall()#Guardamos el Query que ejecuta el cursor en una variable, utilizando el metodo fetchall para que lo convierta en una tupla dentro de otra 
 
-        print(fila[0][0])
-        os.remove(os.path.join(app.config['CARPETA'],fila[0][0] ))
-        cursor.execute("UPDATE empleados SET foto=%s WHERE id=%s ",(nuevoNombreFoto , _id))
-        conn.commit()
+        print(fila[0][0])#Se utiliza de prueba, para ver que nos devuelve "fila" en la terminal. Notese que se hace referencia a la posición 0 de la primera tupla y a la posición 0 de la tupla que la segunda (que se encuentra contenida dentro de la primera)
+        os.remove(os.path.join(app.config['CARPETA'],fila[0][0] ))#Metodo que permite borrar la foto a la que hace referencia el nombre contenido en "fila"
+        cursor.execute("UPDATE empleados SET foto=%s WHERE id=%s ",(nuevoNombreFoto , _id))#Actualizo en la base de datos el nombre de la nueva foto, correspondiente al id proporcionado por la variable "_id"
+        conn.commit()#Estabiliza en la base de datos los cambios realizados
 
-    cursor.execute(sql, datos)
-    conn.commit()
-    return redirect('/')
+    cursor.execute(sql, datos)#Ejecuta el cursor, con el Query que definimos. Asimismo, vincula los datos que dejamos pendientes del Query (%s) con las que se guardaron en la variable "datos"
+    conn.commit()#Estabiliza en la base de datos los cambios realizados
+    return redirect('/')#Redirige a la pagina principal con las modificaciones realizadas
 
 
 
